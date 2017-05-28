@@ -7,7 +7,7 @@ const app = express();
 let busboy = require('connect-busboy')
 
 app.use(busboy());
-
+app.use(express.static('.'))
 app.post('/upload/*', function(req, res) {
     req.pipe(req.busboy);
     req.busboy.on('file', function(fieldname, file, filename) {
@@ -20,29 +20,28 @@ app.post('/upload/*', function(req, res) {
     });
 });
 app.get('/authorized', (req, res) => {
-  console.log('Authorized calles')
-  res.status(200).send('Hello, code='+req.query.code).end();
+    console.log('Authorized called')
+    var request = require('request');
+
+    request.post('https://www.strava.com/oauth/token',
+                { json: { client_id: '18139' ,
+                        client_secret: '2105c2cd90aecfd363292768471d0a51c91b7248',
+                            code: req.query.code }},
+        function (error, response, body) {
+            console.log('error=', error)
+            if (!error && response.statusCode == 200) {
+                console.log(response)
+            }
+        }
+    ).end();
 });
-const homepage = '<html> \
-  <head> \
-    <title>node.js - example</title> \
-  </head> \
-  <body> \
-      <form id="uploadForm" \
-         enctype="multipart/form-data" \
-         action="/authorize" \
-         method="post"> \
-      <input type="submit" value="Authorize" name="submit"> \
-    </form> \
-  </body> \
-</html>'
+
 app.post('/authorize', (req,res) => {
     console.log('Requesting')
-    res.redirect('https://www.strava.com/oauth/authorize?client_id=18139&response_type=code&redirect_uri=http://localhost:8080/authorized&scope=write&state=mystate&approval_prompt=force')
+//   res.redirect('https://www.strava.com/oauth/authorize?client_id=18139&response_type=code&redirect_uri=http://track-my-trip-dot-minecraft-161209.appspot.com/authorized&scope=write&state=mystate&approval_prompt=force')
+ res.redirect('https://www.strava.com/oauth/authorize?client_id=18139&response_type=code&redirect_uri=http://localhost:8080/authorized&scope=write&state=mystate&approval_prompt=force')
+
 })
-app.get('/',  (req, res) => {
-  res.status(200).send(homepage).end();
-});
 
 // Start the server
 const PORT = process.env.PORT || 8080;
