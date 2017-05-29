@@ -22,18 +22,20 @@ app.post('/upload/*', function(req, res) {
 app.get('/authorized', (req, res) => {
     console.log('Authorized called')
     var request = require('request');
-
+    
     request.post('https://www.strava.com/oauth/token',
-                { json: { client_id: '18139' ,
+                { form: { client_id: '18139' ,
                         client_secret: '2105c2cd90aecfd363292768471d0a51c91b7248',
                             code: req.query.code }},
         function (error, response, body) {
             console.log('error=', error)
             if (!error && response.statusCode == 200) {
                 console.log(response)
+                // res.write('code=',response.access_token)
             }
         }
-    ).end();
+    )
+    res.redirect('.')
 });
 
 app.post('/authorize', (req,res) => {
