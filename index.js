@@ -30,21 +30,71 @@ app.get('/authorized', (req, res) => {
         function (error, response, body) {
             console.log('error=', error)
             if (!error && response.statusCode == 200) {
-                console.log(response)
+                var resp = JSON.parse(body)
+                console.log(resp.access_token)
+                res.send('Welcome '+resp.athlete.firstname+' '+resp.athlete.lastname+' token='+ resp.access_token )
                 // res.write('code=',response.access_token)
             }
         }
     )
-    res.redirect('.')
 });
 
 app.post('/authorize', (req,res) => {
     console.log('Requesting')
-//   res.redirect('https://www.strava.com/oauth/authorize?client_id=18139&response_type=code&redirect_uri=http://track-my-trip-dot-minecraft-161209.appspot.com/authorized&scope=write&state=mystate&approval_prompt=force')
- res.redirect('https://www.strava.com/oauth/authorize?client_id=18139&response_type=code&redirect_uri=http://localhost:8080/authorized&scope=write&state=mystate&approval_prompt=force')
+   res.redirect('https://www.strava.com/oauth/authorize?client_id=18139&response_type=code&redirect_uri=http://track-my-trip-dot-minecraft-161209.appspot.com/authorized&scope=write&state=mystate&approval_prompt=force')
+// res.redirect('https://www.strava.com/oauth/authorize?client_id=18139&response_type=code&redirect_uri=http://localhost:8080/authorized&scope=write&state=mystate&approval_prompt=force')
 
 })
+var polyline = require('polyline')
+function compare(a,b) {
+    var ad = new Date(a.start_date)
+    var bd = new Date(b.start_date)
+  if (ad < bd)
+    return -1;
+  if (ad > bd)
+    return 1;
+  return 0;
+}
+app.get('/activities', (req0,res) => {
 
+    console.log('Activities')
+    var coords = []
+    var request = require('request')
+    var activitiesJson = '';
+    var options = {
+        url: 'https://www.strava.com/api/v3/athlete/activities',
+        headers: {
+            Authorization: 'Bearer e4ec4453d77cb4f51a2cb4e97ea506a2ec05ef82' 
+        }
+    };
+    var req = request.get(options)
+    req.on('data', function(d) {
+        console.info('data', d)
+        activitiesJson += d;
+    })
+    req.on('error', function(err){
+        console.info('Error: ', err)   
+    })
+    req.on('end', function() {
+        console.info('Activities read')
+        var activities = JSON.parse(activitiesJson)   
+        console.log('nActivities=',activities.length) 
+        var sortedActivities = activities.sort(compare)
+        sortedActivities.forEach(function(element) {
+            if (element.name.indexOf(req0.query.prefix) == 0)
+            {
+                console.log(element.id, ' date=', element.start_date)
+
+                var sumLine = polyline.decode(element.map.summary_polyline)
+                sumLine.forEach(function(point){
+                    coords.push(point)
+                }, this)
+            }
+        }, this);
+        console.log('CoordsLength=',coords.length)
+        res.send(JSON.stringify(coords,2))
+    })
+})
 // Start the server
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
