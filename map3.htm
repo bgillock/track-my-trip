@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+		<style type="text/css">
+			html { height: 100% }
+			body { height: 100%; margin: 0; padding: 0 }
+			#map-canvas { height: 100% }
+		</style>
+		<script type="text/javascript"
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDgiFfn7sq6RQy2gXG7BEyxr5qBdkPq_2s&sensor=true">
+		</script>
+    
+    <script type="text/javascript">
+
+        // This will parse a delimited string into an array of
+        // arrays. The default delimiter is the comma, but this
+        // can be overriden in the second argument.
+        function CSVToArray( strData, strDelimiter ){
+            // Check to see if the delimiter is defined. If not,
+            // then default to comma.
+            strDelimiter = (strDelimiter || ",");
+
+            // Create a regular expression to parse the CSV values.
+            var objPattern = new RegExp(
+                (
+                    // Delimiters.
+                    "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
+
+                    // Quoted fields.
+                    "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+
+                    // Standard fields.
+                    "([^\"\\" + strDelimiter + "\\r\\n]*))"
+                ), "gi");
+
+            // Create an array to hold our data. Give the array
+            // a default empty first row.
+            var arrData = [[]];
+
+            // Create an array to hold our individual pattern
+            // matching groups.
+            var arrMatches = null;
+
+            // Keep looping over the regular expression matches
+            // until we can no longer find a match.
+            while (arrMatches = objPattern.exec( strData ))
+            {
+                // Get the delimiter that was found.
+                var strMatchedDelimiter = arrMatches[ 1 ];
+
+                // Check to see if the given delimiter has a length
+                // (is not the start of string) and if it matches
+                // field delimiter. If id does not, then we know
+                // that this delimiter is a row delimiter.
+                if (strMatchedDelimiter.length && (strMatchedDelimiter != strDelimiter))
+                {
+                    // Since we have reached a new row of data,
+                    // add an empty row to our data array.
+                    arrData.push( [] );
+
+                }
+
+                // Now that we have our delimiter out of the way,
+                // let's check to see which kind of value we
+                // captured (quoted or unquoted).
+                if (arrMatches[ 2 ]){
+                    // We found a quoted value. When we capture
+                    // this value, unescape any double quotes.
+                    var strMatchedValue = arrMatches[ 2 ].replace(
+                        new RegExp( "\"\"", "g" ),
+                        "\""
+                        );
+
+                } else 
+                {
+                    // We found a non-quoted value.
+                    var strMatchedValue = arrMatches[ 3 ];
+                }
+
+                // Now that we have our value string, let's add
+                // it to the data array.
+                arrData[ arrData.length - 1 ].push( strMatchedValue );
+            }
+
+            // Return the parsed data.
+            return( arrData );
+        }
+
+
+        var returningValue = "";
+        var requester = new XMLHttpRequest();
+
+        // Read the lat/long info for markers
+        requester.open("GET", "gps.csv", false);
+        requester.send(null);
+        returningValue = requester.responseText;
+
+        // Convert our data from the CVS file to a usable array
+        var dater = CSVToArray(returningValue);
+        var zm = 6;
+        var lat = parseFloat(dater[dater.length-1][1]);
+        var lng = parseFloat(dater[dater.length-1][2]);
+
+        // Initialize our Google map
+        google.maps.event.addDomListener(window, 'load', initialize);
+
+        function initialize() 
+        {   
+
+		// Configure the starting variables for the map
+            var mapOptions = {
+                center: new google.maps.LatLng(lat, lng),
+                zoom: zm,
+                mapTypeId: google.maps.MapTypeId.HYBRID
+            };
+
+            // Generate the actual map
+            var map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+
+
+            var returnValue = "";
+            var request = new XMLHttpRequest();
+
+            // Read the lat/long info for markers
+            request.open("GET", "gps.csv", false);
+            request.send(null);
+            returnValue = request.responseText;
+
+            // Convert our data from the CVS file to a usable array
+            var data = CSVToArray(returnValue);
+
+            for (var i = 0; i < data.length; i++) 
+            {
+                // Create a lat/long object readable by Google
+                var myLatlng = new google.maps.LatLng(parseFloat(data[i][1]), parseFloat(data[i][2]));
+
+                // Generate a marker from the lat/long object and add it to the map
+                var marker = new google.maps.Marker({
+                    position: myLatlng,
+                    map: map,
+                    title:data[i][0]
+                });
+            }   
+        }
+    </script>
+	</head>
+	<body>
+		<div id="map-canvas"/>
+	</body>
+</html>

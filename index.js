@@ -64,7 +64,7 @@ app.get('/activities', (req0,res) => {
     var options = {
         url: 'https://www.strava.com/api/v3/athlete/activities',
         headers: {
-            Authorization: 'Bearer e4ec4453d77cb4f51a2cb4e97ea506a2ec05ef82' 
+            Authorization: 'Bearer e33cf1d994e8444f063337634b763d80b5588a6b' 
         }
     };
     var req = request.get(options)
