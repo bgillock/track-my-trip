@@ -69,22 +69,21 @@ app.get('/activities', (req0,res) => {
     };
     var req = request.get(options)
     req.on('data', function(d) {
-        console.info('data', d)
+        // console.info('data', d)
         activitiesJson += d;
     })
     req.on('error', function(err){
         console.info('Error: ', err)   
     })
     req.on('end', function() {
-        console.info('Activities read')
+        //console.info('Activities read')
         var activities = JSON.parse(activitiesJson)   
-        console.log('nActivities=',activities.length) 
+        //console.log('nActivities=',activities.length) 
         var sortedActivities = activities.sort(compare)
         sortedActivities.forEach(function(element) {
             if (element.name.indexOf(req0.query.prefix) == 0)
             {
-                console.log(element.id, ' date=', element.start_date)
-
+                // console.log(element.id, ' date=', element.start_date)
                 var sumLine = polyline.decode(element.map.summary_polyline)
                 sumLine.forEach(function(point){
                     coords.push(point)
@@ -92,6 +91,7 @@ app.get('/activities', (req0,res) => {
             }
         }, this);
         console.log('CoordsLength=',coords.length)
+        res.header('Access-Control-Allow-Origin: *')
         res.send(JSON.stringify(coords,2))
     })
 })
