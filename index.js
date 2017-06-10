@@ -55,14 +55,14 @@ function compare(a,b) {
     return 1;
   return 0;
 }
-app.get('/activities', (req0,res) => {
+app.get('/summaries', (req0,res) => {
 
-    console.log('Activities')
-    var coords = []
+    console.log('Summaries')
+    var polylines = []
     var request = require('request')
     var activitiesJson = '';
     var options = {
-        url: 'https://www.strava.com/api/v3/athlete/activities',
+        url: 'https://www.strava.com/api/v3/athlete/activities?per_page=200',
         headers: {
             Authorization: 'Bearer e33cf1d994e8444f063337634b763d80b5588a6b' 
         }
@@ -78,21 +78,57 @@ app.get('/activities', (req0,res) => {
     req.on('end', function() {
         //console.info('Activities read')
         var activities = JSON.parse(activitiesJson)   
-        //console.log('nActivities=',activities.length) 
+        console.log('nActivities=',activities.length) 
         var sortedActivities = activities.sort(compare)
+       
         sortedActivities.forEach(function(element) {
+            console.log(element.name)
             if (element.name.indexOf(req0.query.prefix) == 0)
             {
+                var polyline1 = []
                 // console.log(element.id, ' date=', element.start_date)
                 var sumLine = polyline.decode(element.map.summary_polyline)
                 sumLine.forEach(function(point){
-                    coords.push(point)
+                    polyline1.push(point)
                 }, this)
+                polylines.push(polyline1)
             }
         }, this);
-        console.log('CoordsLength=',coords.length)
-        res.header('Access-Control-Allow-Origin: *')
-        res.send(JSON.stringify(coords,2))
+        res.header("Access-Control-Allow-Origin", "*")
+        res.send(JSON.stringify(polylines,2))
+    })
+})
+app.get('/activities', (req0,res) => {
+
+    console.log('activities')
+    var request = require('request')
+    var activityNames = []
+    var activitiesJson = '';
+
+    var options = {
+        url: 'https://www.strava.com/api/v3/athlete/activities?per_page=200',
+        headers: {
+            Authorization: 'Bearer e33cf1d994e8444f063337634b763d80b5588a6b' 
+        }
+    };
+    var req = request.get(options)
+    req.on('data', function(d) {
+        // console.info('data', d)
+        activitiesJson += d;
+    })
+    req.on('error', function(err){
+        console.info('Error: ', err)   
+    })
+    req.on('end', function() {
+        var activities = JSON.parse(activitiesJson)   
+        
+        activities.forEach(function(element) {
+            activityNames.push(element.name)
+        }, this);
+
+        console.log('CoordsLength=',activityNames.length)
+        res.header("Access-Control-Allow-Origin", "*")
+        res.send(JSON.stringify(activityNames,2))
     })
 })
 // Start the server
