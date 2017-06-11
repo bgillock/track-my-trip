@@ -13,9 +13,21 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js">
     </script>
     <script type="text/javascript">
-   
-        google.maps.event.addDomListener(window, 'load', initialize);
-       
+        var map
+        google.maps.event.addDomListener(window, 'load', initialize)
+
+        function zoomToObject(points){
+            var bounds = new google.maps.LatLngBounds()
+            for (var n = 0; n < points.length ; n++){
+                bounds.extend(points[n]);
+            }
+            map.fitBounds(bounds);
+            setTimeout(function() {
+                        google.maps.event.trigger(map,'resize');
+                        map.fitBounds(bounds)
+                        }, 200);
+        }
+
         function initialize() 
         {      
             var xmlhttp = new XMLHttpRequest();
@@ -27,49 +39,37 @@
                 if (this.readyState == 4 && this.status == 200) {
                     // console.log('res='+this.responseText)
                     var polylines = JSON.parse(this.responseText);
-                    var totLat = 0
-                    var totLong = 0;
-                    var n = 0;
-                    polylines.forEach(function(coords) {
-                        var polyline = []
-                        coords.forEach(function(element) {
-                            polyline.push(new google.maps.LatLng(element[0],element[1]))
-                        }, this);
-                        // console.log('polyline=',polyline)
-                        totLat += parseFloat(coords[coords.length-1][0]);
-                        totLong += parseFloat(coords[coords.length-1][1]);
-                        n++;
-                    })
+                    var points = []
+
                      // Initialize our Google map
                     var mapOptions = {
-                        center: new google.maps.LatLng(totLat/n, totLong/n),
-                        zoom: 10,
+                        center: new google.maps.LatLng(0, 0),
+                        zoom: 5,
                         mapTypeId: google.maps.MapTypeId.HYBRID
                     };
 
                     // Generate the actual map
-                    var map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+                    map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
 
                     polylines.forEach(function(coords) {
                         var polyline = []
                         coords.forEach(function(element) {
                             polyline.push(new google.maps.LatLng(element[0],element[1]))
+                            points.push(new google.maps.LatLng(element[0],element[1]))
                         }, this);
-                        // console.log('polyline=',polyline)
-                        var lat = parseFloat(coords[coords.length-1][0]);
-                        var lng = parseFloat(coords[coords.length-1][1]);
                        
                         var flightPath = new google.maps.Polyline({
                             path: polyline,
-                            center: new google.maps.LatLng(lat, lng),
                             geodesic: true,
                             strokeColor: '#FF0000',
                             strokeOpacity: 1.0,
                             strokeWeight: 2
                         });
                         console.log('flightPath')
-                        flightPath.setMap(map); 
+                        flightPath.setMap(map);
+
                     })
+                    zoomToObject(points); 
                 }
             }
             xmlhttp.open("GET", url, true);
