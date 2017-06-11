@@ -49,6 +49,9 @@
     
                     var returnValue = JSON.parse(this.responseText);
                     var polylines = returnValue.polylines;
+                    var distance = returnValue.distance;
+                    var elevation = returnValue.elevation;
+                    
                     var points = []
 
                     polylines.forEach(function(coords) {
