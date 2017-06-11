@@ -80,11 +80,14 @@ app.get('/summaries', (req0,res) => {
         var activities = JSON.parse(activitiesJson)   
         console.log('nActivities=',activities.length) 
         var sortedActivities = activities.sort(compare)
-       
+        var totalDistance = 0
+        var totalElevation = 0
         sortedActivities.forEach(function(element) {
             console.log(element.name)
             if (element.name.indexOf(req0.query.prefix) == 0)
             {
+                totalDistance += element.distance 
+                totalElevation += element.total_elevation_gain 
                 var polyline1 = []
                 // console.log(element.id, ' date=', element.start_date)
                 var sumLine = polyline.decode(element.map.summary_polyline)
@@ -94,9 +97,49 @@ app.get('/summaries', (req0,res) => {
                 polylines.push(polyline1)
             }
         }, this);
+        var returnValue = {'distance': totalDistance, 'elevation': totalElevation, 'polyline': polylines }
         res.header("Access-Control-Allow-Origin", "*")
-        res.send(JSON.stringify(polylines,2))
+        res.send(JSON.stringify(returnValue,2))
     })
+})
+app.get('/photos', (req0,res) => {
+
+    console.log('Photos')
+    var photos = []
+    var request = require('sync-request')
+
+    var getResult = request('GET', 'https://www.strava.com/api/v3/athlete/activities?per_page=200', {
+        'headers': {
+            Authorization: 'Bearer e33cf1d994e8444f063337634b763d80b5588a6b' 
+        }
+    })
+
+        //console.info('Activities read')
+        var activities = JSON.parse(getResult.body)   
+        console.log('nActivities=',activities.length) 
+        var sortedActivities = activities.sort(compare)
+        
+        sortedActivities.forEach(function(element) {
+            console.log(element.name+', id='+element.id)
+            if (element.name.indexOf(req0.query.prefix) == 0)
+            {
+                var getResult = request('GET', 'https://www.strava.com/api/v3/activities/'+element.id+'/photos?photo_sources=true', {
+                    'headers': {
+                        Authorization: 'Bearer e33cf1d994e8444f063337634b763d80b5588a6b' 
+                    }
+                })
+                
+                var activityPhotos = JSON.parse(getResult.body)
+                console.log('nphotos=',activityPhotos.length)
+                activityPhotos.forEach(function(element){
+                    photos.push(element)
+                })        
+            }
+        }, this);
+        console.log('sendin')
+        res.header("Access-Control-Allow-Origin", "*")
+        res.send(JSON.stringify(photos,2))
+   
 })
 app.get('/activities', (req0,res) => {
 

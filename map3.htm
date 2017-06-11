@@ -30,26 +30,26 @@
 
         function initialize() 
         {      
+                            // Initialize our Google map
+            var mapOptions = {
+                center: new google.maps.LatLng(0, 0),
+                zoom: 5,
+                mapTypeId: google.maps.MapTypeId.HYBRID
+            };
+
+            // Generate the actual map
+            map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+
             var xmlhttp = new XMLHttpRequest();
             var url = "http://track-my-trip-dot-minecraft-161209.appspot.com/summaries?prefix="+document.getElementById("activities").value;
-            //var url = "http://localhost:8080/summaries?prefix="+document.getElementById("activities").value
-            
             console.log('initialize' + url)
+
             xmlhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
-                    // console.log('res='+this.responseText)
-                    var polylines = JSON.parse(this.responseText);
+    
+                    var returnValue = JSON.parse(this.responseText);
+                    var polylines = returnValue.polylines;
                     var points = []
-
-                     // Initialize our Google map
-                    var mapOptions = {
-                        center: new google.maps.LatLng(0, 0),
-                        zoom: 5,
-                        mapTypeId: google.maps.MapTypeId.HYBRID
-                    };
-
-                    // Generate the actual map
-                    map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
 
                     polylines.forEach(function(coords) {
                         var polyline = []
@@ -75,6 +75,39 @@
             xmlhttp.open("GET", url, true);
             xmlhttp.send();
   
+            var photoshttp = new XMLHttpRequest();
+            var photosurl = "http://track-my-trip-dot-minecraft-161209.appspot.com/photos?prefix="+document.getElementById("activities").value;
+             
+            photoshttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    // console.log('res='+this.responseText)
+                    var photos = JSON.parse(this.responseText);
+
+                    photos.forEach(function(photo) {
+                       
+                           // create an invisible marker
+                        var image = {
+                            url: photo.urls[0],
+                            // This marker is 20 pixels wide by 32 pixels high.
+                            size: new google.maps.Size(photo.sizes[0][0], photo.sizes[0][1]),
+                            // The origin for this image is (0, 0).
+                            origin: new google.maps.Point(0, 0),
+                            // The anchor for this image is the base of the flagpole at (0, 32).
+                            anchor: new google.maps.Point(0, photo.sizes[0][1])
+                        };   
+                        console.log('url=',photo.urls[0])
+                        var labelMarker = new google.maps.Marker({
+                            position: new google.maps.LatLng(photo.location[0],photo.location[1]), 
+                            icon: image,
+                            title:"Hello World!"
+                        });
+                        labelMarker.setMap(map)
+                               
+                    })
+                } 
+            }
+            photoshttp.open("GET", photosurl, true);
+            photoshttp.send();
         }
     </script>
 	</head>

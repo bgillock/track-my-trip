@@ -8,6 +8,7 @@
     "express": "4.15.2",
     "https": "^1.0.0",
     "polyline": "^0.2.0",
-    "request": "^2.81.0"
+    "request": "^2.81.0",
+    "sync-request": "^4.1.0"
   }
 }
