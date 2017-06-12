@@ -82,12 +82,14 @@ app.get('/summaries', (req0,res) => {
         var sortedActivities = activities.sort(compare)
         var totalDistance = 0
         var totalElevation = 0
+        var totalDays = 0
         sortedActivities.forEach(function(element) {
             console.log(element.name)
             if (element.name.indexOf(req0.query.prefix) == 0)
             {
                 totalDistance += element.distance 
                 totalElevation += element.total_elevation_gain 
+                totalDays++
                 var polyline1 = []
                 // console.log(element.id, ' date=', element.start_date)
                 var sumLine = polyline.decode(element.map.summary_polyline)
@@ -97,7 +99,7 @@ app.get('/summaries', (req0,res) => {
                 polylines.push(polyline1)
             }
         }, this);
-        var returnValue = {'distance': totalDistance, 'elevation': totalElevation, 'polyline': polylines }
+        var returnValue = {'distance': totalDistance, 'elevation': totalElevation, 'days': totalDays, 'polylines': polylines }
         res.header("Access-Control-Allow-Origin", "*")
         res.send(JSON.stringify(returnValue,2))
     })
