@@ -99,7 +99,7 @@ app.get('/summaries', (req0,res) => {
                 polylines.push(polyline1)
             }
         }, this);
-        var returnValue = {'distance': totalDistance, 'elevation': totalElevation, 'days': totalDays, 'polylines': polylines }
+        var returnValue = {'distance': totalDistance, 'elevation': totalElevation, 'polylines': polylines }
         res.header("Access-Control-Allow-Origin", "*")
         res.send(JSON.stringify(returnValue,2))
     })

@@ -51,7 +51,7 @@
                     var polylines = returnValue.polylines;
                     var distance = returnValue.distance;
                     var elevation = returnValue.elevation;
-                    
+
                     var points = []
 
                     polylines.forEach(function(coords) {
@@ -60,7 +60,7 @@
                             polyline.push(new google.maps.LatLng(element[0],element[1]))
                             points.push(new google.maps.LatLng(element[0],element[1]))
                         }, this);
-                       
+                        
                         var flightPath = new google.maps.Polyline({
                             path: polyline,
                             geodesic: true,
