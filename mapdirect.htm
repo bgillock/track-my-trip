@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-		<style type="text/css">
-			html { height: 100% }
-			body { height: 100%; margin: 0; padding: 0 }
-			#map-canvas { height: 90% }
-		</style>
-
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+        html { height: 100% }
+        body { height: 100%; margin: 0; padding: 0 }
+        #map-canvas { height: 90% }
+    </style>
     <script type="text/javascript">
 
         function compare(a,b) {
@@ -36,31 +35,26 @@
         {               
             var xmlhttp = new XMLHttpRequest();
             var url = "https://www.strava.com/api/v3/athlete/activities?per_page=200";
-
+            xmlhttp.open("GET", url, true);
+            xmlhttp.setRequestHeader('Authorization','Bearer e33cf1d994e8444f063337634b763d80b5588a6b')
+            xmlhttp.send();
             xmlhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     var activities = JSON.parse(this.responseText)   
-
                     var sortedActivities = activities.sort(compare)
-                    var totalDistance = 0
-                    var totalElevation = 0
-                    var totalDays = 0
                     var polylines = []
                     var prefix = document.getElementById("activities").value
                     sortedActivities.forEach(function(element) {
                         if (element.name.indexOf(prefix) == 0)
                         {
-                            totalDistance += element.distance 
-                            totalElevation += element.total_elevation_gain 
-                            totalDays++
-                            var polyline1 = []
+                            var thisPolyline = []
 
                             var sumLine = google.maps.geometry.encoding.decodePath(element.map.summary_polyline)
  
                             sumLine.forEach(function(point){
-                                polyline1.push(point)
+                                thisPolyline.push(point)
                             }, this)
-                            polylines.push(polyline1)
+                            polylines.push(thisPolyline)
                         }
                     }, this);
 
@@ -96,14 +90,12 @@
                     zoomToObject(map,points); 
                 }
             }
-            xmlhttp.open("GET", url, true);
-            xmlhttp.setRequestHeader('Authorization','Bearer e33cf1d994e8444f063337634b763d80b5588a6b')
-            xmlhttp.send();
+
         }
     </script>
     <script type="text/javascript"
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDgiFfn7sq6RQy2gXG7BEyxr5qBdkPq_2s&libraries=geometry&callback=initialize" async defer>
-        </script>
+    </script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js">
     </script>
 	</head>
