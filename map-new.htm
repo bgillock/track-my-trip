@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+	<head>
+<title>Track My Ride</title>		
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+<style type="text/css">
+	html { height: 100%; font:15px arial, sans-serif;}
+	body { height: 100%; margin: 0; padding: 0 ; }
+	img { border:none; }
+	#map-canvas { height: 100% }
+	#box {background-color: #fff;box-shadow: 5px 5px 5px rgba(0, 0, 0, .5); position:absolute;z-index:2;right:15px;top:15px; border-radius: 10px;}
+	#dropdown {background-color:#379ef5;color:#ffffff;padding:5px;margin-top:-4px;font-size:16px;text-align:center}
+	#info {text-align:center;font-size:14px;color:#379ef5}
+	#stat {text-align:center;font-size:22px}
+
+@media
+only screen and (-webkit-min-device-pixel-ratio : 1.5),
+only screen and (min-device-pixel-ratio : 1.5) {
+ 	#box {background-color: #ffffff; position:absolute;z-index:2;right:5px;top:5px; border-radius: 6px;width:200px}
+	img {width:200px}
+	#dropdown {background-color:#379ef5;color:#ffffff;padding:5px;margin-top:-4px;font-size:9px}
+	#info {text-align:center;color:#379ef5; font-size:9px}
+	#stat {text-align:center;font-size:15px}
+}
+
+</style>
+<script type="text/javascript">
+function imgBySel(objId,theValue) {
+    
+    var imgs=["images/Europe.jpg","images/Stavanger.jpg","images/ForTheKing.jpg","images/Bangkok.jpg",
+"images/Prachuap.jpg","images/Texas.jpg","images/NYC.jpg","images/SoutheastAsia.jpg","images/FirstTrip.jpg","images/NongKhai.jpg"];
+    
+    var d=document;
+    theValue=imgs[theValue];
+    if (!theValue || !d.getElementById ) return;
+    var obj = d.getElementById(objId);
+    if (obj) obj.src=theValue;    
+}
+
+        function compare(a,b) {
+            var ad = new Date(a.start_date)
+            var bd = new Date(b.start_date)
+            if (ad < bd)
+                return -1;
+            if (ad > bd)
+                return 1;
+            return 0;
+        }
+
+        function zoomToObject(map, points){
+            var bounds = new google.maps.LatLngBounds()
+            for (var n = 0; n < points.length ; n++){
+                bounds.extend(points[n]);
+            }
+            map.fitBounds(bounds);
+            setTimeout(function() {
+                        google.maps.event.trigger(map,'resize');
+                        map.fitBounds(bounds)
+                        }, 200);
+        }
+
+         function initialize() 
+        {               
+            var xmlhttp = new XMLHttpRequest();
+            var url = "https://www.strava.com/api/v3/athlete/activities?per_page=200";
+            xmlhttp.open("GET", url, true);
+            xmlhttp.setRequestHeader('Authorization','Bearer e33cf1d994e8444f063337634b763d80b5588a6b')
+            xmlhttp.send();
+            xmlhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    var activities = JSON.parse(this.responseText)   
+                    var sortedActivities = activities.sort(compare)
+                    var polylines = []
+
+                    var totalDistance = 0
+                    var totalElevation = 0
+                    var totalDays = 0
+                
+                    var prefix = document.getElementById("activities").value
+                    sortedActivities.forEach(function(element) {
+                        if (element.name.indexOf(prefix) == 0)
+                        {
+                            totalDistance += element.distance 
+                            totalElevation += element.total_elevation_gain 
+                            totalDays++
+
+                            var thisPolyline = []
+                            var sumLine = google.maps.geometry.encoding.decodePath(element.map.summary_polyline)
+ 
+                            sumLine.forEach(function(point){
+                                thisPolyline.push(point)
+                            }, this)
+                            polylines.push(thisPolyline)
+                        }
+                    }, this);
+                    // Initialize our Google map
+                    var mapOptions = {
+                        center: new google.maps.LatLng(0, 0),
+                        zoom: 5,
+                        mapTypeId: google.maps.MapTypeId.HYBRID
+                    };
+                    // Generate the actual map
+                    var map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+                    var points = []
+                    polylines.forEach(function(coords) {
+                        var polyline = []
+                        coords.forEach(function(element) {
+                            polyline.push(element)      
+                            points.push(element)
+                        }, this);
+                    
+                        var tripPath = new google.maps.Polyline({
+                            path: polyline,
+                            geodesic: true,
+                            strokeColor: '#FF0000',
+                            strokeOpacity: 1.0,
+                            strokeWeight: 2
+                        });
+                        tripPath.setMap(map);
+                    })
+                    zoomToObject(map,points); 
+                    var days = totalDays;
+			        document.getElementById("div1").innerHTML = "<div id='stat'>"+days+"</div>";
+                    var distance = (totalDistance/1000).toFixed(1).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+			        document.getElementById("div2").innerHTML = "<div id='stat'>"+distance+"</div>";
+                    var elevation = totalElevation.toFixed(1).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+			        document.getElementById("div3").innerHTML = "<div id='stat'>"+elevation+"</div>";
+                }
+            }
+        }
+    </script>
+    <script type="text/javascript"
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDgiFfn7sq6RQy2gXG7BEyxr5qBdkPq_2s&libraries=geometry&callback=initialize" async defer>
+    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js">
+    </script>
+</head>
+<body>
+<div id="box"><img id="theImg" name="theImg" src="images/Europe.jpg">
+<div id="dropdown"><b>Select Route:</b>
+    <select id="activities" onchange="initialize();imgBySel('theImg',this.selectedIndex);" style="padding:3px">
+        <option value="Europe" selected>Europe</option>
+        <option value="Stavanger">Stavanger</option>
+        <option value="For the King">For the King</option>
+        <option value="Bangkok">Bangkok</option>
+        <option value="Prachuap">Prachuap</option>
+        <option value="Texas">Texas</option>
+        <option value="New York City">New York City</option>
+        <option value="Southeast Asia">Southeast Asia</option>
+        <option value="First Trip">First Trip</option>
+        <option value="Nong Khai">Nong Khai</option>
+    </select></div>
+<div style="padding:10px;background-color:#FFFFFF;border-radius: 10px;">
+<table width="100%" cellpadding="0" cellspacing="0"><tr><td height="50" valign="top" align="center" style="border-right: 2px solid #f0f0f0;"><div id="info">Days</div><div id="div1"><div id="stat"></div></div></td>
+<td valign="top" align="center" style="border-right: 2px solid #f0f0f0;"><div id="info">Distance(km)</div><div id="div2"><div id="stat"></div></div></td><td valign="top" align="center">
+<div id="info">Ascent(m)</div><div id="div3"><div id="stat"></div></div></td></tr></table></div>
+</div>
+    <div id="map-canvas"/>
+	</body>
+</html>

@@ -1,0 +1,124 @@
+swagger: '2.0'
+info:
+  version: v1
+  title: Evolution TIE API
+host: "api.delfi.slb.com"
+basePath: "/evolution/v1"  
+paths:
+  '/tasks/{taskId}':
+    get:
+      description: Get a representation of the task in its current state.
+      tags:
+        - Task
+      operationId: Get task
+      consumes: []
+      produces: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/TaskViewModel'
+    delete:
+      description: Delete a task
+      tags:
+        - Task
+      operationId: Delete task
+      consumes: []
+      produces: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+  /tasks:
+    post:
+      description: Create a task
+      tags:
+        - Task
+      operationId: Create task
+      consumes:
+        - application/json
+      produces: []
+      parameters:
+        - name: vm
+          in: body
+          required: false
+          schema:
+            $ref: '#/definitions/TaskViewModel'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/TaskId'
+definitions:
+  TaskId:
+    type: object
+    required:
+      - taskId
+    properties:
+      taskId:
+        type: string
+        description: ID of newly created task
+  TaskViewModel:
+    required:
+      - impedanceMDs
+      - impedance
+      - traceStartTime
+      - seismicTrace
+      - samplingStart
+      - samplingInterval
+      - waveletAmplitudes
+      - tdrDepths
+    type: object
+    properties:
+      impedanceMDs:
+        type: array
+        items:
+          format: double
+          type: number
+      impedance:
+        type: array
+        items:
+          format: double
+          type: number
+      traceStartTime:
+        format: double
+        type: number
+      seismicTrace:
+        type: array
+        items:
+          format: double
+          type: number
+      samplingStart:
+        format: double
+        type: number
+      samplingInterval:
+        format: double
+        type: number
+      waveletAmplitudes:
+        type: array
+        items:
+          format: double
+          type: number
+      tdrDepths:
+        type: array
+        items:
+          format: double
+          type: number
+      numOfEpochs:
+        format: int32
+        type: integer
+      tdrTimes:
+        type: array
+        items:
+          format: double
+          type: number
+securityDefinitions: {}
